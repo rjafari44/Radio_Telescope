@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 // motor driver pins
 const int M1_INA{2};
 const int M1_INB{4};
