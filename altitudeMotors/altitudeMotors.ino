@@ -17,9 +17,10 @@ const int center{512};
 const int deadZone{20};
 const int maxSpeed{140};
 
+// variables for calculating joystick value
 int stickValue{0};
 int pwmValue{0};
-int delta{};
+int delta{}; // variable for calculating position
 
 
 void setup() {
