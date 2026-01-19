@@ -1,38 +1,10 @@
 #include <Arduino.h>
-
-// motor driver pins
-const int M1_INA{2};
-const int M1_INB{4};
-const int M1_PWM{9};
-const int M1_EN {6};  // EN/DIAG sense for motor 1
-const int M1_CS {14}; // current sense for motor 1
-
-const int M2_INA{7};
-const int M2_INB{8};
-const int M2_PWM{10};
-const int M2_EN {12}; // EN/DIAG for motor 2
-const int M2_CS {15}; // current sense for motor 2
-
-// joystick
-const int readStick{16};
-const int center{512};
-const int deadZone{20};
-const int maxSpeed{140};
+#include "myheader.h"
 
 // variables for calculating joystick value
-int stickValue{0};
-int pwmValue{0};
+int stickValue{};
+int pwmValue{};
 int delta{}; // variable for calculating position
-
-const float CURRENT_SENSITIVITY = 0.26; 
-const float STALL_CURRENT = 2.0; 
-
-float readCurrent(int csPin) {
-    int sensorValue=analogRead(csPin);
-    float voltage = sensorValue * (5.0 / 1023.0);
-    return voltage / CURRENT_SENSITIVITY;
-}
-
 
 void setup() {
     pinMode(M1_INA, OUTPUT);
@@ -49,64 +21,48 @@ void setup() {
 }
 
 void loop() {
-    stickValue = analogRead(readStick); // get value from joystick between 0-1023
-    delta = stickValue - center;        // delta is difference of the joystick value (0-1023) - 512 (center)
+    stickValue = analogRead(READSTICK); // get value from joystick between 0-1023
+    delta = stickValue - CENTER;        // delta is difference of the joystick value (0-1023) - 512 (center)
 
     // stop, if delta is less than 20, it is a safety stop range
-    if (abs(delta) < deadZone) {
-        analogWrite(M1_PWM, 0);
-        analogWrite(M2_PWM, 0);
-
-        // coast to stop
-        digitalWrite(M1_INA, LOW);
-        digitalWrite(M1_INB, LOW);
-        digitalWrite(M2_INA, LOW);
-        digitalWrite(M2_INB, LOW);
+    if (abs(delta) < DEADZONE) {
+        stopMotors();
     }
 
-    // Forward
+    // Forward if delta is greater than 0 (conditionally it's value has to be more than 20)
     else if (delta > 0) {
 
         // the map function works by the equation: y=(x−in_min)∗(out_max−out_min)/(in_max−in_min)+out_min where 
         // long map(long x, long in_min, long in_max, long out_min, long out_max);
         // it converts an analog value smoothly to pwm
-        pwmValue = map(delta, deadZone, 512, 0, 255); 
+        pwmValue = map(delta, DEADZONE, 512, 0, 255); 
 
-        if (pwmValue > maxSpeed) {
-            pwmValue = maxSpeed;
+        if (pwmValue > MAXSPEED) {
+            pwmValue = MAXSPEED;
         }
 
-        digitalWrite(M1_INA, HIGH);
-        digitalWrite(M1_INB, LOW);
-        digitalWrite(M2_INA, HIGH);
-        digitalWrite(M2_INB, LOW);
-
-        analogWrite(M1_PWM, pwmValue);
-        analogWrite(M2_PWM, pwmValue);
+        forwardMotors(pwmValue);
     }
 
-    // Reverse
+    // Reverse if delta is less than 0 (conditionally its absolute value has to be greater than 20)
     else {
         // look at explanation in above else if
-        pwmValue = map(-delta, deadZone, 512, 0, 255);
+        pwmValue = map(-delta, DEADZONE, 512, 0, 255);
 
-        if (pwmValue > maxSpeed) {
-            pwmValue = maxSpeed;
+        if (pwmValue > MAXSPEED) {
+            pwmValue = MAXSPEED;
         }
 
-        digitalWrite(M1_INA, LOW);
-        digitalWrite(M1_INB, HIGH);
-        digitalWrite(M2_INA, LOW);
-        digitalWrite(M2_INB, HIGH);
-
-        analogWrite(M1_PWM, pwmValue);
-        analogWrite(M2_PWM, pwmValue);
+        reverseMotors(pwmValue);
     }
 
     // fault check
     if (digitalRead(M1_EN) == LOW || digitalRead(M2_EN) == LOW) {
+        stopMotors();
+    }
 
-        analogWrite(M1_PWM, 0);
-        analogWrite(M2_PWM, 0);
+    // --- Stall detection for both motors ---
+    if (checkStall(M1_CS) || checkStall(M2_CS)) {
+        stopMotors();
     }
 }
