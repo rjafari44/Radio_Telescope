@@ -21,7 +21,7 @@ constexpr int MAXSPEED{140};
 
 // current sense parameters
 constexpr float CURRENT_SENSE = 0.14; // V/A
-constexpr float STALL_CURRENT = 2;   // Amps
+constexpr float STALL_CURRENT = 2.5;   // Amps
 constexpr unsigned long STALL_TIME = 50; // ms
 
 void stopMotors();

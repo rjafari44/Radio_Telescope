@@ -8,7 +8,7 @@ int delta{}; // variable for calculating position
 
 void setup() {
     Serial.begin(115200);
-    delay(100);
+    delay(300);
 
     Serial.println("Starting!");
 
