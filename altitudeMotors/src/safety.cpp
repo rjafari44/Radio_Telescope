@@ -13,8 +13,7 @@ float readCurrent(int csPin) {
 
 // --- Stall detection function ---
 // Returns true if motor should be stopped
-bool checkStall(int csPin) {
-    static unsigned long stallStart{}; // persists between calls
+bool checkStall(int csPin, unsigned long &stallStart) {
     float current{};
     
     current = readCurrent(csPin);
