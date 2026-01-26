@@ -8,9 +8,6 @@ int delta{}; // variable for calculating position
 
 void setup() {
     Serial.begin(115200);
-    delay(300);
-
-    Serial.println("Starting!");
 
     pinMode(M1_INA, OUTPUT);
     pinMode(M1_INB, OUTPUT);
@@ -23,6 +20,9 @@ void setup() {
     // EN/DIAG pins: open-drain → pull-up
     pinMode(M1_EN, INPUT_PULLUP);
     pinMode(M2_EN, INPUT_PULLUP);
+
+    delay(500);
+    Serial.println("Starting!");
 }
 
 void loop() {
